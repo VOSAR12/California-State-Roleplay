@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Hub</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 40px; text-align: center; background: #f5f5f5; }
+    .page { display: none; }
+    .active { display: block; }
+    .button { margin: 10px; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+    .nav { background: #3498db; color: white; }
+    .nav:hover { background: #2980b9; }
+    .input { margin: 8px; padding: 10px; width: 300px; }
+    .panel-button { background: #27ae60; color: white; }
+    .panel-button:hover { background: #1e8449; }
+    .appeal-box { border: 1px solid #ccc; padding: 10px; margin: 10px auto; background: white; border-radius: 6px; width: 80%; text-align: left; }
+  </style>
+</head>
+<body>
+
+  <!-- Home Page -->
+  <div id="home" class="page active">
+    <h1>Staff Hub Home</h1>
+    <button class="button nav" onclick="showPage('ownershipLogin')">Ownership Panel</button>
+    <button class="button nav" onclick="showPage('directiveLogin')">Directive Login</button>
+    <button class="button nav" onclick="showPage('departments')">Department Applications</button>
+    <button class="button nav" onclick="showPage('appeal')">Appeal a Ban</button>
+  </div>
+
+  <!-- Ownership Login -->
+  <div id="ownershipLogin" class="page">
+    <h2>Ownership Login</h2>
+    <input class="input" id="ownerUser" placeholder="Username"><br>
+    <input class="input" id="ownerPass" type="password" placeholder="Password"><br>
+    <button class="button nav" onclick="login('owner')">Login</button>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- Directive Login -->
+  <div id="directiveLogin" class="page">
+    <h2>Directive Login</h2>
+    <input class="input" id="directiveUser" placeholder="Username"><br>
+    <input class="input" id="directivePass" type="password" placeholder="Password"><br>
+    <button class="button nav" onclick="login('directive')">Login</button>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- Ownership Panel -->
+  <div id="ownershipPanel" class="page">
+    <h2>Ownership Panel</h2>
+    <button class="button panel-button" onclick="showPage('viewAppeals')">View Appeals</button>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- Directive Panel -->
+  <div id="directivePanel" class="page">
+    <h2>Directive Panel</h2>
+    <button class="button panel-button" onclick="showPage('viewAppeals')">View Appeals</button>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- Departments -->
+  <div id="departments" class="page">
+    <h2>Department Applications</h2>
+    <div>
+      <h3>Police Department</h3>
+      <button class="button panel-button" onclick="alert('Apply for Police Department')">Apply</button>
+    </div>
+    <div>
+      <h3>Fire Department</h3>
+      <button class="button panel-button" onclick="alert('Apply for Fire Department')">Apply</button>
+    </div>
+    <div>
+      <h3>Dispatch Department</h3>
+      <button class="button panel-button" onclick="alert('Apply for Dispatch Department')">Apply</button>
+    </div>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- Appeal Form -->
+  <div id="appeal" class="page">
+    <h2>Appeal a Ban</h2>
+    <input class="input" id="appealEmail" placeholder="Your Email"><br>
+    <input class="input" id="appealDiscord" placeholder="Discord Username"><br>
+    <textarea class="input" id="appealReason" placeholder="Reason for appeal"></textarea><br>
+    <button class="button nav" onclick="submitAppeal()">Submit Appeal</button>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- View Appeals -->
+  <div id="viewAppeals" class="page">
+    <h2>Submitted Appeals</h2>
+    <div id="appealsList"></div>
+    <br><button onclick="showPage('home')">Back</button>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    const bannedEmails = ["oeanviewrp1@gmail.com", "banned2@example.com"];
+
+    function showPage(pageId) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(pageId).classList.add("active");
+      if (pageId === 'viewAppeals') loadAppeals();
+    }
+
+    function login(panel) {
+      let user = "", pass = "", valid = false;
+      if (panel === 'owner') {
+        user = document.getElementById('ownerUser').value;
+        pass = document.getElementById('ownerPass').value;
+        valid = user === 'owner' && pass === 'ownerpass';
+        if (valid) showPage('ownershipPanel');
+      } else if (panel === 'directive') {
+        user = document.getElementById('directiveUser').value;
+        pass = document.getElementById('directivePass').value;
+        valid = user === 'ryan' && pass === 'test';
+        if (valid) showPage('directivePanel');
+      }
+      if (!valid) alert('Invalid credentials.');
+    }
+
+    function submitAppeal() {
+      const email = document.getElementById("appealEmail").value.trim();
+      const discord = document.getElementById("appealDiscord").value.trim();
+      const reason = document.getElementById("appealReason").value.trim();
+
+      if (!email || !discord || !reason) return alert("Fill out all fields.");
+
+      if (!bannedEmails.includes(email)) {
+        alert("This email is not banned. Appeal denied.");
+        return;
+      }
+
+      const appeals = JSON.parse(localStorage.getItem("appeals") || "[]");
+      appeals.push({ email, discord, reason, date: new Date().toLocaleString() });
+      localStorage.setItem("appeals", JSON.stringify(appeals));
+
+      alert("Appeal submitted.");
+      document.getElementById("appealEmail").value = "";
+      document.getElementById("appealDiscord").value = "";
+      document.getElementById("appealReason").value = "";
+      showPage("home");
+    }
+
+    function loadAppeals() {
+      const appeals = JSON.parse(localStorage.getItem("appeals") || "[]");
+      const container = document.getElementById("appealsList");
+      container.innerHTML = appeals.length === 0 ? "<p>No appeals submitted.</p>" : "";
+      appeals.forEach(app => {
+        const div = document.createElement("div");
+        div.className = "appeal-box";
+        div.innerHTML = `
+          <strong>Email:</strong> ${app.email}<br>
+          <strong>Discord:</strong> ${app.discord}<br>
+          <strong>Reason:</strong> ${app.reason}<br>
+          <strong>Date:</strong> ${app.date}
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
